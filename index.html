@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Napló - Web Programozás 1</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #333; }
+    header { background: linear-gradient(135deg, #1a237e, #283593); color: white; padding: 40px 20px; text-align: center; }
+    header h1 { font-size: 2em; margin-bottom: 10px; }
+    header p { font-size: 1.1em; opacity: 0.85; }
+    nav { background: #1565c0; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; padding: 10px; }
+    nav a { color: white; text-decoration: none; padding: 10px 18px; border-radius: 6px; font-weight: 500; transition: background 0.2s; }
+    nav a:hover, nav a.active { background: #0d47a1; }
+    .hero { background: white; max-width: 900px; margin: 40px auto; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .hero h2 { color: #1a237e; margin-bottom: 20px; font-size: 1.6em; }
+    .hero p { line-height: 1.7; margin-bottom: 15px; color: #555; }
+    .cards { display: flex; flex-wrap: wrap; gap: 20px; max-width: 900px; margin: 0 auto 40px; padding: 0 20px; }
+    .card { flex: 1 1 220px; background: white; border-radius: 10px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); border-top: 4px solid #1565c0; }
+    .card h3 { color: #1565c0; margin-bottom: 10px; }
+    .card p { font-size: 0.9em; color: #666; }
+    footer { background: #1a237e; color: white; text-align: center; padding: 20px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Web programozás-1 Előadás Házi feladat</h1>
+    <p>Városvégi Gimnázium – Elektronikus Napló Alkalmazás</p>
+  </header>
+  <nav>
+    <a href="index.html" class="active">Főoldal</a>
+    <a href="javascript.html">JavaScript</a>
+    <a href="react.html">React</a>
+    <a href="spa.html">SPA</a>
+    <a href="fetchapi.html">Fetch API</a>
+    <a href="axios.html">Axios</a>
+    <a href="oojs.html">OOJS</a>
+  </nav>
+  <div class="hero">
+    <h2>Az alkalmazásról</h2>
+    <p>Ez a webalkalmazás a <strong>Városvégi Gimnázium elektronikus naplójának</strong> adatait kezeli. Az adatbázis egy tanév első négy hónapjában bejegyzett jegyeit tartalmazza, három fő táblával: diákok, tárgyak és jegyek.</p>
+    <p>Az alkalmazás bemutatja a modern webes technológiák széles körét: natív JavaScript, React, Single Page Application, Fetch API, Axios és objektum-orientált JavaScript.</p>
+  </div>
+  <div class="cards">
+    <div class="card"><h3>🗂️ JavaScript CRUD</h3><p>Tömbben tárolt adatokkal működő teljes CRUD alkalmazás.</p></div>
+    <div class="card"><h3>⚛️ React CRUD</h3><p>React komponensekkel megvalósított CRUD felület.</p></div>
+    <div class="card"><h3>📄 SPA</h3><p>Egyoldalas alkalmazás két React komponenssel.</p></div>
+    <div class="card"><h3>🌐 Fetch API</h3><p>Szerveroldali adatbázissal kommunikáló CRUD alkalmazás.</p></div>
+    <div class="card"><h3>🔗 Axios</h3><p>React + Axios alapú CRUD megoldás.</p></div>
+    <div class="card"><h3>🏗️ OOJS</h3><p>Objektum-orientált JavaScript grafikus alkalmazás.</p></div>
+  </div>
+  <footer>
+    <p>Készítette: <strong>Kovács Máté</strong> &nbsp;|&nbsp; Neptun kód: <strong>FA98OA</strong></p>
+  </footer>
+</body>
+</html>
