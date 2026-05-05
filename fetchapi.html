@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fetch API CRUD – Napló</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #333; }
+    header { background: linear-gradient(135deg, #1a237e, #283593); color: white; padding: 30px 20px; text-align: center; }
+    header h1 { font-size: 1.6em; }
+    nav { background: #1565c0; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; padding: 10px; }
+    nav a { color: white; text-decoration: none; padding: 10px 18px; border-radius: 6px; font-weight: 500; }
+    nav a:hover { background: #0d47a1; }
+    main { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+    h2 { color: #1a237e; margin-bottom: 20px; }
+    input, select, textarea { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
+    button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95em; font-weight: 500; }
+    .btn-primary { background: #1565c0; color: white; }
+    .btn-success { background: #2e7d32; color: white; }
+    .btn-warning { background: #f57f17; color: white; }
+    .btn-danger { background: #c62828; color: white; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-top: 15px; }
+    th { background: #1565c0; color: white; padding: 12px 15px; text-align: left; }
+    td { padding: 10px 15px; border-bottom: 1px solid #eee; }
+    tr:hover td { background: #e3f2fd; }
+    .form-box { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 25px; }
+    .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    footer { background: #1a237e; color: white; text-align: center; padding: 15px; margin-top: 30px; }
+    .info-box { background: #fff3e0; border-left: 4px solid #f57f17; padding: 15px 20px; border-radius: 6px; margin-bottom: 20px; }
+    .info-box p { margin: 4px 0; font-size: 0.95em; }
+    .loading { color: #1565c0; font-style: italic; }
+    .error { color: #c62828; }
+  </style>
+</head>
+<body>
+  <header><h1>Web programozás-1 Előadás Házi feladat</h1></header>
+  <nav>
+    <a href="index.html">Főoldal</a>
+    <a href="javascript.html">JavaScript</a>
+    <a href="react.html">React</a>
+    <a href="spa.html">SPA</a>
+    <a href="fetchapi.html">Fetch API</a>
+    <a href="axios.html">Axios</a>
+    <a href="oojs.html">OOJS</a>
+  </nav>
+  <main>
+    <h2>Fetch API CRUD – Tárgyak</h2>
+    <div class="info-box">
+      <p>⚠️ Ez az oldal PHP + MySQL szerverrel kommunikál a Fetch API-n keresztül.</p>
+      <p>A szerveroldali fájl: <strong>api/targy.php</strong> – az adatokat MySQL adatbázisban tárolja.</p>
+    </div>
+    <div class="form-box">
+      <h3 id="formTitle">Új tárgy hozzáadása</h3>
+      <div class="form-row">
+        <input type="hidden" id="editId">
+        <input type="text" id="nev" placeholder="Tárgy neve" style="flex:2">
+        <select id="kategoria" style="flex:1">
+          <option value="informatika">informatika</option>
+          <option value="reál">reál</option>
+          <option value="humán">humán</option>
+          <option value="matematika">matematika</option>
+          <option value="művészeti">művészeti</option>
+          <option value="nyelv">nyelv</option>
+        </select>
+        <button class="btn-success" onclick="saveRecord()">Mentés</button>
+        <button class="btn-warning" onclick="clearForm()">Mégse</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <input type="text" id="search" placeholder="Keresés..." oninput="filterTable()" style="flex:1">
+    </div>
+    <span id="statusMsg" class="loading"></span>
+    <table>
+      <thead><tr><th>ID</th><th>Tárgy neve</th><th>Kategória</th><th>Műveletek</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </main>
+  <footer><p>Készítette: <strong>Kovács Máté</strong> | Neptun kód: <strong>FA98OA</strong></p></footer>
+  <script>
+    const API = 'http://beadandoweb1.nhely.hu/api/targy.php';
+    let allData = [];
+
+    async function loadData() {
+      document.getElementById('statusMsg').textContent = 'Betöltés...';
+      try {
+        const res = await fetch(API);
+        allData = await res.json();
+        renderTable(allData);
+        document.getElementById('statusMsg').textContent = '';
+      } catch(e) {
+        document.getElementById('statusMsg').className = 'error';
+        document.getElementById('statusMsg').textContent = 'Hiba: nem sikerült az API elérése. Ellenőrizd a szerveroldali fájlt!';
+      }
+    }
+
+    function filterTable() {
+      const q = document.getElementById('search').value.toLowerCase();
+      renderTable(allData.filter(d => d.nev.toLowerCase().includes(q) || d.kategoria.toLowerCase().includes(q)));
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = '';
+      data.forEach(d => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${d.id}</td><td>${d.nev}</td><td>${d.kategoria}</td>
+          <td>
+            <button class="btn-warning" onclick="editRecord(${d.id}, '${d.nev}', '${d.kategoria}')">Szerkesztés</button>
+            <button class="btn-danger" onclick="deleteRecord(${d.id})">Törlés</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function saveRecord() {
+      const id = document.getElementById('editId').value;
+      const nev = document.getElementById('nev').value.trim();
+      const kategoria = document.getElementById('kategoria').value;
+      if(!nev) { alert('A név megadása kötelező!'); return; }
+      const method = id ? 'PUT' : 'POST';
+      const body = id ? {id: parseInt(id), nev, kategoria} : {nev, kategoria};
+      await fetch(API, {method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+      clearForm();
+      loadData();
+    }
+
+    function editRecord(id, nev, kategoria) {
+      document.getElementById('editId').value = id;
+      document.getElementById('nev').value = nev;
+      document.getElementById('kategoria').value = kategoria;
+      document.getElementById('formTitle').textContent = 'Tárgy szerkesztése';
+    }
+
+    async function deleteRecord(id) {
+      if(confirm('Biztosan törlöd?')) {
+        await fetch(API, {method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id})});
+        loadData();
+      }
+    }
+
+    function clearForm() {
+      document.getElementById('editId').value='';
+      document.getElementById('nev').value='';
+      document.getElementById('kategoria').value='informatika';
+      document.getElementById('formTitle').textContent='Új tárgy hozzáadása';
+    }
+
+    loadData();
+  </script>
+</body>
+</html>

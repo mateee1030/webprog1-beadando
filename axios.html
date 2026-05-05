@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Axios CRUD – Napló</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #333; }
+    header { background: linear-gradient(135deg, #1a237e, #283593); color: white; padding: 30px 20px; text-align: center; }
+    header h1 { font-size: 1.6em; }
+    nav { background: #1565c0; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; padding: 10px; }
+    nav a { color: white; text-decoration: none; padding: 10px 18px; border-radius: 6px; font-weight: 500; }
+    nav a:hover { background: #0d47a1; }
+    main { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+    h2 { color: #1a237e; margin-bottom: 20px; }
+    input, select { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
+    button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95em; font-weight: 500; }
+    .btn-success { background: #2e7d32; color: white; }
+    .btn-warning { background: #f57f17; color: white; }
+    .btn-danger { background: #c62828; color: white; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-top: 15px; }
+    th { background: #1565c0; color: white; padding: 12px 15px; text-align: left; }
+    td { padding: 10px 15px; border-bottom: 1px solid #eee; }
+    tr:hover td { background: #e3f2fd; }
+    .form-box { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 25px; }
+    .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    footer { background: #1a237e; color: white; text-align: center; padding: 15px; margin-top: 30px; }
+    .info-box { background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 15px 20px; border-radius: 6px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <header><h1>Web programozás-1 Előadás Házi feladat</h1></header>
+  <nav>
+    <a href="index.html">Főoldal</a>
+    <a href="javascript.html">JavaScript</a>
+    <a href="react.html">React</a>
+    <a href="spa.html">SPA</a>
+    <a href="fetchapi.html">Fetch API</a>
+    <a href="axios.html">Axios</a>
+    <a href="oojs.html">OOJS</a>
+  </nav>
+  <main><div id="root"></div></main>
+  <footer><p>Készítette: <strong>Kovács Máté</strong> | Neptun kód: <strong>FA98OA</strong></p></footer>
+
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const API = 'http://beadandoweb1.nhely.hu/api/targy.php';
+    const kategoriak = ['informatika','reál','humán','matematika','művészeti','nyelv'];
+
+    function TargyForm({onSave, editData, onCancel}) {
+      const [nev, setNev] = useState('');
+      const [kat, setKat] = useState(kategoriak[0]);
+
+      useEffect(() => {
+        if(editData) { setNev(editData.nev); setKat(editData.kategoria); }
+        else { setNev(''); setKat(kategoriak[0]); }
+      }, [editData]);
+
+      async function handleSubmit(e) {
+        e.preventDefault();
+        if(!nev.trim()) { alert('A név megadása kötelező!'); return; }
+        const data = {nev, kategoria: kat};
+        if(editData) {
+          await axios.put(API, {...data, id: editData.id});
+        } else {
+          await axios.post(API, data);
+        }
+        onSave();
+      }
+
+      return (
+        <div className="form-box">
+          <h3>{editData ? 'Tárgy szerkesztése' : 'Új tárgy hozzáadása'}</h3>
+          <form onSubmit={handleSubmit}>
+            <div className="form-row">
+              <input value={nev} onChange={e=>setNev(e.target.value)} placeholder="Tárgy neve" style={{flex:2}} />
+              <select value={kat} onChange={e=>setKat(e.target.value)}>
+                {kategoriak.map(k=><option key={k}>{k}</option>)}
+              </select>
+              <button type="submit" className="btn-success">Mentés</button>
+              <button type="button" className="btn-warning" onClick={onCancel}>Mégse</button>
+            </div>
+          </form>
+        </div>
+      );
+    }
+
+    function App() {
+      const [targyak, setTargyak] = useState([]);
+      const [editData, setEditData] = useState(null);
+      const [search, setSearch] = useState('');
+      const [msg, setMsg] = useState('Betöltés...');
+
+      useEffect(() => { loadData(); }, []);
+
+      async function loadData() {
+        try {
+          const res = await axios.get(API);
+          const data = Array.isArray(res.data) ? res.data : [];
+          setTargyak(data);
+          setMsg('');
+        } catch(err) {
+          setMsg('Hiba: az API nem érhető el. ' + (err.message || ''));
+        }
+      }
+
+      async function handleDelete(id) {
+        if(confirm('Biztosan törlöd?')) {
+          await axios.delete(API, {data: {id}});
+          loadData();
+        }
+      }
+
+      const filtered = targyak.filter(t =>
+        t.nev.toLowerCase().includes(search.toLowerCase()) ||
+        t.kategoria.toLowerCase().includes(search.toLowerCase())
+      );
+
+      return (
+        <div>
+          <h2>Axios CRUD – Tárgyak</h2>
+          <div className="info-box"><p>⚠️ Ez az oldal React + Axios + PHP + MySQL kombinációt használ.</p></div>
+          <TargyForm onSave={()=>{ setEditData(null); loadData(); }} editData={editData} onCancel={()=>setEditData(null)} />
+          <div style={{marginBottom:15}}>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Keresés..." style={{width:'100%',maxWidth:400}} />
+          </div>
+          {msg && <p style={{color: msg.includes('Hiba') ? '#c62828' : '#1565c0', marginBottom:10}}>{msg}</p>}
+          <table>
+            <thead><tr><th>ID</th><th>Tárgy neve</th><th>Kategória</th><th>Műveletek</th></tr></thead>
+            <tbody>
+              {filtered.map(t=>(
+                <tr key={t.id}>
+                  <td>{t.id}</td><td>{t.nev}</td><td>{t.kategoria}</td>
+                  <td>
+                    <button className="btn-warning" onClick={()=>setEditData(t)} style={{marginRight:5}}>Szerkesztés</button>
+                    <button className="btn-danger" onClick={()=>handleDelete(t.id)}>Törlés</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
