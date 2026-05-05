@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React CRUD – Napló</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #333; }
+    header { background: linear-gradient(135deg, #1a237e, #283593); color: white; padding: 30px 20px; text-align: center; }
+    header h1 { font-size: 1.6em; }
+    nav { background: #1565c0; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; padding: 10px; }
+    nav a { color: white; text-decoration: none; padding: 10px 18px; border-radius: 6px; font-weight: 500; transition: background 0.2s; }
+    nav a:hover { background: #0d47a1; }
+    main { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+    h2 { color: #1a237e; margin-bottom: 20px; }
+    input, select { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
+    button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95em; font-weight: 500; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+    th { background: #1565c0; color: white; padding: 12px 15px; text-align: left; }
+    td { padding: 10px 15px; border-bottom: 1px solid #eee; }
+    tr:last-child td { border-bottom: none; }
+    footer { background: #1a237e; color: white; text-align: center; padding: 15px; margin-top: 30px; }
+
+    .form-box { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 25px; }
+    .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .btn-primary { background: #1565c0; color: white; }
+    .btn-success { background: #2e7d32; color: white; }
+    .btn-warning { background: #f57f17; color: white; }
+    .btn-danger { background: #c62828; color: white; }
+    tr:hover td { background: #e3f2fd; }
+  </style>
+</head>
+<body>
+  <header><h1>Web programozás-1 Előadás Házi feladat</h1></header>
+  <nav>
+    <a href="index.html">Főoldal</a>
+    <a href="javascript.html">JavaScript</a>
+    <a href="react.html">React</a>
+    <a href="spa.html">SPA</a>
+    <a href="fetchapi.html">Fetch API</a>
+    <a href="axios.html">Axios</a>
+    <a href="oojs.html">OOJS</a>
+  </nav>
+  <main>
+    <div id="root"></div>
+  </main>
+  <footer><p>Készítette: <strong>Kovács Máté</strong> | Neptun kód: <strong>FA98OA</strong></p></footer>
+
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel">
+    const { useState } = React;
+
+    const initialDiakData = [
+      {id:1,nev:"Pék Roland",osztaly:"12/B",fiu:-1},
+      {id:2,nev:"Illin Zita",osztaly:"12/C",fiu:0},
+      {id:3,nev:"Ördögh Dániel",osztaly:"12/B",fiu:-1},
+      {id:4,nev:"Barta Ildikó",osztaly:"12/C",fiu:0},
+      {id:5,nev:"Simony Kata",osztaly:"12/B",fiu:0},
+      {id:6,nev:"Csepreg Natália",osztaly:"12/A",fiu:0},
+      {id:7,nev:"Nagy Petra",osztaly:"12/B",fiu:0},
+      {id:8,nev:"Vörös Dóra",osztaly:"12/C",fiu:0},
+      {id:9,nev:"Varga Boldizsár",osztaly:"12/C",fiu:-1},
+      {id:10,nev:"Szilágyi Réka",osztaly:"12/C",fiu:0},
+    ];
+
+    function DiakForm({onSave, editData, onCancel}) {
+      const [nev, setNev] = useState(editData ? editData.nev : '');
+      const [osztaly, setOsztaly] = useState(editData ? editData.osztaly : '');
+      const [fiu, setFiu] = useState(editData ? editData.fiu : -1);
+
+      React.useEffect(() => {
+        if(editData) { setNev(editData.nev); setOsztaly(editData.osztaly); setFiu(editData.fiu); }
+        else { setNev(''); setOsztaly(''); setFiu(-1); }
+      }, [editData]);
+
+      function handleSubmit(e) {
+        e.preventDefault();
+        if(!nev.trim() || !osztaly.trim()) { alert('Kötelező mezők!'); return; }
+        onSave({nev, osztaly, fiu: parseInt(fiu)});
+      }
+
+      return (
+        <div className="form-box">
+          <h3>{editData ? 'Diák szerkesztése' : 'Új diák hozzáadása'}</h3>
+          <form onSubmit={handleSubmit}>
+            <div className="form-row">
+              <input value={nev} onChange={e=>setNev(e.target.value)} placeholder="Név" style={{flex:2}} />
+              <input value={osztaly} onChange={e=>setOsztaly(e.target.value)} placeholder="Osztály" style={{flex:1}} />
+              <select value={fiu} onChange={e=>setFiu(e.target.value)}>
+                <option value={-1}>Fiú</option>
+                <option value={0}>Lány</option>
+              </select>
+              <button type="submit" className="btn-success">Mentés</button>
+              <button type="button" className="btn-warning" onClick={onCancel}>Mégse</button>
+            </div>
+          </form>
+        </div>
+      );
+    }
+
+    function DiakRow({diak, onEdit, onDelete}) {
+      return (
+        <tr>
+          <td>{diak.id}</td>
+          <td>{diak.nev}</td>
+          <td>{diak.osztaly}</td>
+          <td>{diak.fiu === -1 ? 'Fiú' : 'Lány'}</td>
+          <td>
+            <button className="btn-warning" onClick={()=>onEdit(diak)} style={{marginRight:5}}>Szerkesztés</button>
+            <button className="btn-danger" onClick={()=>onDelete(diak.id)}>Törlés</button>
+          </td>
+        </tr>
+      );
+    }
+
+    function App() {
+      const [diakList, setDiakList] = useState(initialDiakData);
+      const [editData, setEditData] = useState(null);
+      const [search, setSearch] = useState('');
+      const [nextId, setNextId] = useState(11);
+
+      const filtered = diakList.filter(d => d.nev.toLowerCase().includes(search.toLowerCase()));
+
+      function handleSave(data) {
+        if(editData) {
+          setDiakList(diakList.map(d => d.id === editData.id ? {...data, id: editData.id} : d));
+        } else {
+          setDiakList([...diakList, {...data, id: nextId}]);
+          setNextId(nextId + 1);
+        }
+        setEditData(null);
+      }
+
+      function handleDelete(id) {
+        if(confirm('Biztosan törlöd?')) setDiakList(diakList.filter(d=>d.id!==id));
+      }
+
+      return (
+        <div>
+          <h2>React CRUD – Diákok</h2>
+          <DiakForm onSave={handleSave} editData={editData} onCancel={()=>setEditData(null)} />
+          <div style={{marginBottom:15}}>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Keresés név szerint..." style={{width:'100%',maxWidth:400}} />
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Név</th><th>Osztály</th><th>Nem</th><th>Műveletek</th></tr></thead>
+            <tbody>
+              {filtered.map(d => <DiakRow key={d.id} diak={d} onEdit={setEditData} onDelete={handleDelete} />)}
+            </tbody>
+          </table>
+          <p style={{marginTop:10,color:'#666'}}>{filtered.length} rekord megjelenítve</p>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

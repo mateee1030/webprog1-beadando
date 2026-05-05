@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaScript CRUD – Napló</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #333; }
+    header { background: linear-gradient(135deg, #1a237e, #283593); color: white; padding: 30px 20px; text-align: center; }
+    header h1 { font-size: 1.6em; }
+    nav { background: #1565c0; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; padding: 10px; }
+    nav a { color: white; text-decoration: none; padding: 10px 18px; border-radius: 6px; font-weight: 500; transition: background 0.2s; }
+    nav a:hover { background: #0d47a1; }
+    main { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+    h2 { color: #1a237e; margin-bottom: 20px; }
+    .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    input, select { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
+    button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95em; font-weight: 500; transition: background 0.2s; }
+    .btn-primary { background: #1565c0; color: white; }
+    .btn-primary:hover { background: #0d47a1; }
+    .btn-success { background: #2e7d32; color: white; }
+    .btn-success:hover { background: #1b5e20; }
+    .btn-warning { background: #f57f17; color: white; }
+    .btn-warning:hover { background: #e65100; }
+    .btn-danger { background: #c62828; color: white; }
+    .btn-danger:hover { background: #b71c1c; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+    th { background: #1565c0; color: white; padding: 12px 15px; text-align: left; }
+    td { padding: 10px 15px; border-bottom: 1px solid #eee; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #e3f2fd; }
+    .form-box { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 25px; }
+    .form-box h3 { color: #1a237e; margin-bottom: 15px; }
+    .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    footer { background: #1a237e; color: white; text-align: center; padding: 15px; margin-top: 30px; }
+</style>
+</head>
+<body>
+  <header><h1>Web programozás-1 Előadás Házi feladat</h1></header>
+  <nav>
+    <a href="index.html">Főoldal</a>
+    <a href="javascript.html">JavaScript</a>
+    <a href="react.html">React</a>
+    <a href="spa.html">SPA</a>
+    <a href="fetchapi.html">Fetch API</a>
+    <a href="axios.html">Axios</a>
+    <a href="oojs.html">OOJS</a>
+  </nav>
+  <main>
+    <h2>JavaScript CRUD – Diákok</h2>
+    <div class="form-box">
+      <h3 id="formTitle">Új diák hozzáadása</h3>
+      <div class="form-row">
+        <input type="hidden" id="editId">
+        <input type="text" id="nev" placeholder="Név" style="flex:2">
+        <input type="text" id="osztaly" placeholder="Osztály (pl. 9/A)" style="flex:1">
+        <select id="fiu">
+          <option value="-1">Fiú</option>
+          <option value="0">Lány</option>
+        </select>
+        <button class="btn-success" onclick="saveRecord()">Mentés</button>
+        <button class="btn-warning" onclick="clearForm()">Mégse</button>
+      </div>
+    </div>
+    <div class="controls">
+      <input type="text" id="search" placeholder="Keresés név szerint..." oninput="renderTable()" style="flex:1">
+      <select id="filterClass" onchange="renderTable()"><option value="">Minden osztály</option></select>
+    </div>
+    <table id="dTable">
+      <thead><tr><th>ID</th><th>Név</th><th>Osztály</th><th>Nem</th><th>Műveletek</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <p style="margin-top:10px;color:#666" id="countLabel"></p>
+  </main>
+  <footer><p>Készítette: <strong>Kovács Máté</strong> | Neptun kód: <strong>FA98OA</strong></p></footer>
+  <script>
+    let diakAdatok = [
+      {id:1,nev:"Pék Roland",osztaly:"12/B",fiu:-1},
+      {id:2,nev:"Illin Zita",osztaly:"12/C",fiu:0},
+      {id:3,nev:"Ördögh Dániel",osztaly:"12/B",fiu:-1},
+      {id:4,nev:"Barta Ildikó",osztaly:"12/C",fiu:0},
+      {id:5,nev:"Simony Kata",osztaly:"12/B",fiu:0},
+      {id:6,nev:"Csepreg Natália",osztaly:"12/A",fiu:0},
+      {id:7,nev:"Nagy Petra",osztaly:"12/B",fiu:0},
+      {id:8,nev:"Vörös Dóra",osztaly:"12/C",fiu:0},
+      {id:9,nev:"Varga Boldizsár",osztaly:"12/C",fiu:-1},
+      {id:10,nev:"Szilágyi Réka",osztaly:"12/C",fiu:0},
+      {id:11,nev:"Helle Ágnes",osztaly:"12/B",fiu:0},
+      {id:12,nev:"Gyömbér Anna",osztaly:"12/C",fiu:0},
+      {id:13,nev:"Farkas Dária",osztaly:"12/B",fiu:0},
+      {id:14,nev:"Barta Zsuzsanna",osztaly:"12/C",fiu:0},
+      {id:15,nev:"Schiss Bence",osztaly:"12/A",fiu:-1},
+      {id:16,nev:"Szabó Attila",osztaly:"12/A",fiu:-1},
+      {id:17,nev:"Nagy Dorottya",osztaly:"12/C",fiu:0},
+      {id:18,nev:"Lengyel Lilla",osztaly:"11/B",fiu:0},
+      {id:19,nev:"Csiszár Nikolett",osztaly:"12/C",fiu:0},
+      {id:20,nev:"Kond Lili",osztaly:"12/B",fiu:0}
+    ];
+    let nextId = 21;
+
+    function getClasses() {
+      return [...new Set(diakAdatok.map(d=>d.osztaly))].sort();
+    }
+
+    function populateFilter() {
+      const sel = document.getElementById('filterClass');
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">Minden osztály</option>';
+      getClasses().forEach(c => {
+        const o = document.createElement('option');
+        o.value = c; o.textContent = c;
+        if(c===cur) o.selected=true;
+        sel.appendChild(o);
+      });
+    }
+
+    function renderTable() {
+      const search = document.getElementById('search').value.toLowerCase();
+      const filterClass = document.getElementById('filterClass').value;
+      const filtered = diakAdatok.filter(d =>
+        d.nev.toLowerCase().includes(search) &&
+        (filterClass==='' || d.osztaly===filterClass)
+      );
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = '';
+      filtered.forEach(d => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${d.id}</td><td>${d.nev}</td><td>${d.osztaly}</td>
+          <td>${d.fiu===-1?'Fiú':'Lány'}</td>
+          <td>
+            <button class="btn-warning" onclick="editRecord(${d.id})">Szerkesztés</button>
+            <button class="btn-danger" onclick="deleteRecord(${d.id})">Törlés</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('countLabel').textContent = filtered.length + ' rekord megjelenítve';
+    }
+
+    function saveRecord() {
+      const id = document.getElementById('editId').value;
+      const nev = document.getElementById('nev').value.trim();
+      const osztaly = document.getElementById('osztaly').value.trim();
+      const fiu = parseInt(document.getElementById('fiu').value);
+      if(!nev || !osztaly) { alert('A név és osztály megadása kötelező!'); return; }
+      if(id) {
+        const idx = diakAdatok.findIndex(d=>d.id===parseInt(id));
+        diakAdatok[idx] = {id:parseInt(id),nev,osztaly,fiu};
+      } else {
+        diakAdatok.push({id:nextId++,nev,osztaly,fiu});
+      }
+      clearForm();
+      populateFilter();
+      renderTable();
+    }
+
+    function editRecord(id) {
+      const d = diakAdatok.find(d=>d.id===id);
+      document.getElementById('editId').value = d.id;
+      document.getElementById('nev').value = d.nev;
+      document.getElementById('osztaly').value = d.osztaly;
+      document.getElementById('fiu').value = d.fiu;
+      document.getElementById('formTitle').textContent = 'Diák szerkesztése';
+    }
+
+    function deleteRecord(id) {
+      if(confirm('Biztosan törlöd?')) {
+        diakAdatok = diakAdatok.filter(d=>d.id!==id);
+        populateFilter();
+        renderTable();
+      }
+    }
+
+    function clearForm() {
+      document.getElementById('editId').value='';
+      document.getElementById('nev').value='';
+      document.getElementById('osztaly').value='';
+      document.getElementById('fiu').value='-1';
+      document.getElementById('formTitle').textContent='Új diák hozzáadása';
+    }
+
+    populateFilter();
+    renderTable();
+  </script>
+</body>
+</html>
